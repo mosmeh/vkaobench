@@ -187,11 +187,11 @@ private:
 	}
 
 	void createDescriptorSet() {
-        VkDescriptorSetLayoutBinding descSetLayoutBinding = {};
-        descSetLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-        descSetLayoutBinding.binding = 0;
-        descSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        descSetLayoutBinding.descriptorCount = 1;
+		VkDescriptorSetLayoutBinding descSetLayoutBinding = {};
+		descSetLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+		descSetLayoutBinding.binding = 0;
+		descSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		descSetLayoutBinding.descriptorCount = 1;
 
 		VkDescriptorSetLayoutCreateInfo descSetLayoutCreateInfo = {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
 		descSetLayoutCreateInfo.bindingCount = 1;
@@ -377,5 +377,5 @@ int main() {
 		return EXIT_FAILURE;
 	}
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
