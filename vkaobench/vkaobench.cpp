@@ -108,21 +108,21 @@ private:
 			throw std::exception("physical device not found");
 		}
 
-		const auto physicalDevices = std::make_unique<VkPhysicalDevice[]>(numPhysicalDevices);
-		VK_CHECK(vkEnumeratePhysicalDevices(instance, &numPhysicalDevices, physicalDevices.get()));
+		std::vector<VkPhysicalDevice> physicalDevices(numPhysicalDevices);
+		VK_CHECK(vkEnumeratePhysicalDevices(instance, &numPhysicalDevices, physicalDevices.data()));
 
-		physicalDevice = physicalDevices[0];
+		physicalDevice = physicalDevices.at(0);
 	}
 
 	void findQueueFamily() {
 		uint32_t numQueueFamilyProperties = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &numQueueFamilyProperties, nullptr);
 
-		const auto queueFamilyProperties = std::make_unique<VkQueueFamilyProperties[]>(numQueueFamilyProperties);
-		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &numQueueFamilyProperties, queueFamilyProperties.get());
+		std::vector<VkQueueFamilyProperties> queueFamilyProperties(numQueueFamilyProperties);
+		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &numQueueFamilyProperties, queueFamilyProperties.data());
 
 		for (uint32_t i = 0; i < numQueueFamilyProperties; ++i) {
-			if (queueFamilyProperties[i].queueCount > 0 && queueFamilyProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT) {
+			if (queueFamilyProperties.at(i).queueCount > 0 && queueFamilyProperties.at(i).queueFlags & VK_QUEUE_COMPUTE_BIT) {
 				queueFamilyIndex = i;
 				return;
 			}
@@ -237,19 +237,11 @@ private:
 			throw std::exception("could not open shader binary");
 		}
 
-		const std::streampos begin = ifs.tellg();
-		ifs.seekg(0, std::ios::end);
-		const std::streampos end = ifs.tellg();
-		const auto size = static_cast<size_t>(end - begin);
-
-		const auto buffer = std::make_unique<char[]>(size);
-		ifs.seekg(0);
-		ifs.read(buffer.get(), size);
-		ifs.close();
+		std::vector<char> bin((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 
 		VkShaderModuleCreateInfo createInfo = {VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
-		createInfo.pCode = reinterpret_cast<uint32_t*>(buffer.get());
-		createInfo.codeSize = size;
+		createInfo.pCode = reinterpret_cast<uint32_t*>(bin.data());
+		createInfo.codeSize = bin.size();
 
 		VK_CHECK(vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule));
 	}
@@ -330,16 +322,16 @@ private:
 	}
 
 	void saveImage() {
-		const auto buffer = std::make_unique<char[]>(3 * WIDTH * HEIGHT);
+		std::vector<char> buffer(3 * WIDTH * HEIGHT);
 
 		VK_CHECK(vkWaitForFences(device, 1, &fence, VK_TRUE, std::numeric_limits<uint64_t>::max()));
 
 		vec4* pixels;
 		VK_CHECK(vkMapMemory(device, memory, 0, BUFFER_SIZE, 0, reinterpret_cast<void**>(&pixels)));
 		for (int i = 0; i < WIDTH * HEIGHT; ++i) {
-			buffer[3 * i + 0] = static_cast<char>(255 * pixels[i].r);
-			buffer[3 * i + 1] = static_cast<char>(255 * pixels[i].g);
-			buffer[3 * i + 2] = static_cast<char>(255 * pixels[i].b);
+			buffer.at(3 * i + 0) = static_cast<char>(255 * pixels[i].r);
+			buffer.at(3 * i + 1) = static_cast<char>(255 * pixels[i].g);
+			buffer.at(3 * i + 2) = static_cast<char>(255 * pixels[i].b);
 		}
 		vkUnmapMemory(device, memory);
 
@@ -347,7 +339,7 @@ private:
 		ofs << "P6" << std::endl
 			<< WIDTH << " " << HEIGHT << std::endl
 			<< "255" << std::endl;
-		ofs.write(buffer.get(), 3 * WIDTH * HEIGHT);
+		ofs.write(buffer.data(), 3 * WIDTH * HEIGHT);
 	}
 
 	VkInstance instance;
