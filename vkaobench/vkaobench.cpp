@@ -1,11 +1,6 @@
 #include "stdafx.h"
 
-#define VK_CHECK(x) { \
-	VkResult res = (x); \
-	if (res != VK_SUCCESS) { \
-		throw std::exception("failed: " #x); \
-	} \
-}
+#define VK_CHECK(x) if ((x) != VK_SUCCESS) throw std::exception("failed: " #x);
 
 struct vec4 {
 	float r, g, b, a;
